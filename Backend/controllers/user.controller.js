@@ -47,7 +47,7 @@ export const login = async (req, res) => {
     }
 
     let user = await User.findOne({ email });
-    if (user) {
+    if (!user) {
       return res.status(400).json({
         message: "incorrect email/password",
         success: false,
@@ -118,28 +118,27 @@ export const updateProfile = async (req, res) => {
   try {
     const { fullName, email, phoneNumber, bio, skills } = req.body;
     const file = req.file;
-    if (!fullName || !email || !phoneNumber || !bio || !skills) {
-      return res.status(400).json({
-        message: "Something is missing",
-        success: false,
-      });
-    }
-    // cloudinay aayega
 
-    const skillsArray = skills.split(",");
-    const userId = req._id;
+    // cloudinay aayega
+    let skillsArray;
+    if (skills) {
+      skillsArray = skills.split(",");
+    }
+
+    const userId = req.id; //middleware authenticaton
     let user = await User.findById(userId);
     if (!user) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "user not found",
         success: false,
       });
     }
     //updating data
-    user.fullName = fullName;
-    user.email = email;
-    user.phoneNumber = phoneNumber;
-    (user.profile.bio = bio), (user.profile.skillsArray = skillsArray);
+    if (fullName) user.fullName = fullName
+    if (email) user.email = email
+    if (phoneNumber) user.phoneNumber = phoneNumber
+    if (bio) user.profile.bio = bio
+    if (skills) user.profile.skills = skillsArray
 
     ///resume comes later here
     await user.save();
@@ -153,13 +152,13 @@ export const updateProfile = async (req, res) => {
       profile: user.profile,
     };
 
-     return res.status(200).json({
-        message:"profile updated successfully",
-        user,
-        success:true
-     })
-
-  } catch {
+    return res.status(200).json({
+      message: "profile updated successfully",
+      user,
+      success: true,
+    });
+  }
+  catch {
     console.log(error);
   }
 };

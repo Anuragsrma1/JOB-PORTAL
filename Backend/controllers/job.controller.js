@@ -12,7 +12,7 @@ export const postJob = async (req, res) => {
       location,
       jobType,
       experience,
-      positon,
+      position,
       companyId,
     } = req.body;
     const userId = req.id;
@@ -24,7 +24,7 @@ export const postJob = async (req, res) => {
       !location ||
       !jobType ||
       !experience ||
-      !positon ||
+      !position ||
       !companyId
     ) {
       return res.status(400).json({
@@ -41,12 +41,12 @@ export const postJob = async (req, res) => {
       location,
       jobType,
       experienceLevel: experience,
-      positon,
-      comapany: companyId,
+      position,
+      company : companyId,
       created_by: userId,
     });
 
-    return res.status(200).json({
+    return res.status(201).json({
       message: "New job created successfully",
       job,
       success: true,
@@ -66,7 +66,9 @@ export const getAllJobs = async (req, res) => {
         { description: { $regex: keyword, $options: "i" } },
       ],
     };
-    const jobs = await Job.find(query);
+    const jobs = await Job.find(query).populate({
+      path:"company"
+    }).sort({createdAt:-1});
     if (!jobs) {
       return res.status(404).json({
         message: "job not found",
